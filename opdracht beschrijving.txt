@@ -1,0 +1,12 @@
+Menu-system
+Menu choices on 1 or 2 lines, under the puzzle
+(O)ptions
+No recursion (wtf?)
+Check input if incorrect
+When number input check per character
+Choose a maximum number (10.000? i dont think so)
+Input of letters and numbers translated into only numbers
+black true; white false
+max 50x50
+Always print the full image and cursor location
+Description to the right and under the image
