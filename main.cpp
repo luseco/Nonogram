@@ -1,11 +1,15 @@
-﻿#include <iostream>
+﻿//                                                                   |
+//Square of info
+#include <iostream>
 #include <fstream>
 #include <string>
 #include <cstdlib>
 using namespace std;
 
-void clear(bool errMsg) {
-	system("CLS");
+void clear(bool clrCmd, bool errMsg) {
+	if (clrCmd) {
+		system("CLS");
+	}
 	if (errMsg) {
 		cout << "Invalid input. Try again." << endl;
 	}
@@ -26,7 +30,7 @@ int append(int integer, int toAppend) {
 	return integer * 10 + toAppend;
 }
 
-int SToInt(string string) {
+int StrToInt(string string) {
 	int integer = 0;
 	for (int i = 0; i < string.size(); i++) {
 		integer = append(integer, string[i] - '0');
@@ -34,8 +38,17 @@ int SToInt(string string) {
 	return integer;
 }
 
-int CToInt(char character) {
+int CharToInt(char character) {
 	return character - '0';
+}
+
+bool* getCol(int pos, bool dsp[][50]) {
+	bool col[50] = {0};
+
+	for (int i = 0; i < 50; i++) {
+		col[i] = dsp[i][pos];
+	}
+	return col;
 }
 
 class Nonogram {
@@ -47,11 +60,13 @@ private:
 public:
 	ifstream inputFile;
 	const int max = 50;
-	int dimensions[2] = { 0 };
-	int rows[50][25] = { 0 }, cols[50][25] = { 0 };
-	bool display[50][50] = { 0 };
-	int cursor[2] = { 0 };
-	
+	int dimensions[2] = {0};
+	int rows[50][25] = {0}, cols[50][25] = {0};
+	bool display[50][50] = {0};
+	int cursor[2] = {0};
+	string w = {char(176), char(176)}, b = {char(178), char(178)},
+		   wC = "  ", bC = {char(219), char(219)};
+
 	Nonogram() {
 		dimensions[0] = 13;
 		dimensions[1] = 13;
@@ -65,7 +80,7 @@ public:
 			}
 			else {
 				dimensions[dimension] = append(dimensions[dimension],
-										CToInt(line[i]));
+										CharToInt(line[i]));
 			}
 		}
 
@@ -81,7 +96,7 @@ public:
 				}
 				else {
 					rows[i][rowI] = append(rows[i][rowI],
-									CToInt(line[ii]));
+									CharToInt(line[ii]));
 				}
 			}
 		}
@@ -98,7 +113,7 @@ public:
 				}
 				else {
 					cols[i][colI] = append(cols[i][colI],
-									CToInt(line[ii]));
+									CharToInt(line[ii]));
 				}
 			}
 		}
@@ -115,36 +130,38 @@ public:
 	}
 
 	void show() {
-		cout << string(dimensions[0] * 2 + 2, '_') << endl;
+		cout << char(201)<< string(dimensions[0] * 2.0, char(205)) 
+			 << char(187) << endl;
 		for (int i = 0; i < dimensions[1]; i++) {
-			cout << '|';
+			cout << char(186);
 			for (int ii = 0; ii < dimensions[0]; ii++) {
 				if (display[i][ii]) {
 					if (i == cursor[0] && ii == cursor[1]) {
-						cout << char(219) << char(219);
+						cout << bC;
 					}
 					else {
-						cout << "##";
+						cout << b;
 					}
 				}
 				else {
 					if (i == cursor[0] && ii == cursor[1]) {
-						cout << "  ";
+						cout << wC;
 					}
 					else {
-						cout << "[]";
+						cout << w;
 					}
 					
 				}
 			}
-			cout << "| ";
+			cout << char(186);
 			for (int ii = 0; rows[i][ii] != 0; ii++) {
 				cout << rows[i][ii] << ' ';
 			}
 			cout << endl;
 		}
-		cout << string(dimensions[0] * 2 + 2, 238) << endl;
 		
+		cout << char(200) << string(dimensions[0] * 2.0, char(205))
+			 << char(188) << endl;
 		for (int i = 0; i < 20; i++) {
 			int counter = 0;
 			for (int ii = 0; ii < dimensions[0]; ii++) {
@@ -164,26 +181,6 @@ public:
 		}
 	}
 
-	int intRequest(string consoleText) {
-		string userInput;
-		int number = 0;
-
-		cout << consoleText;
-		cin >> userInput;
-
-		for (int i = 0; i < userInput.size(); i++) {
-			if (number <= max) {
-				if (userInput[i] >= '0' || userInput[i] <= '9') {
-					number = append(number, CToInt(userInput[i]));
-				}
-			}
-			else {
-				number = max;
-			}
-		}
-		return number;
-	}
-
 	void moveCursor(char direction) {
 		if (direction == 'a' && cursor[1] > 0) {
 			cursor[1]--;
@@ -198,26 +195,80 @@ public:
 			cursor[0]++;
 		}
 	}
+
+	int intRequest(string consoleText) {
+		string userInput;
+		int number = 0;
+
+		while (true) {
+			number = 0;
+			cout << consoleText;
+			cin >> userInput;
+
+			for (int i = 0; i < userInput.size(); i++) {
+				if (userInput[i] >= '0' && userInput[i] <= '9') {
+					number = append(number, CharToInt(userInput[i]));
+				}
+			}
+			if (number > max) {
+				clear(1, 0);
+				cout << "Maximum input is " << max << "." << endl;
+			} else if (number == 0) {
+				clear(1, 1);
+			}
+			else {
+				break;
+			}
+		}
+		clear(1, 0);
+		return number;
+	}
+
+	int* dsc(bool dsp[]) {
+		int description[25] = { 0 };
+		int counter = 0;
+
+		for (int i = 0, ii = 0; i < max; i++) {
+			if (dsp[i] == 0 && counter != 0) {
+				description[ii] = counter;
+				counter = 0;
+				ii++;
+			}
+			else if (dsp[i] == 1) {
+				counter++;
+			}
+		}
+		return description;
+	}
+
+	void dscDsp() {
+		for (int i = 0; i < 50; i++) {
+			for (int ii = 0; ii < 25; ii++) {
+				rows[i][ii] = dsc(display[i])[ii];
+				cols[i][ii] = dsc(getCol(i, display))[ii];
+			}
+		}
+	}
 };
 
 void MainMenu();
 
 void Properties(Nonogram& nono) {
-	clear(0);
+	clear(1, 0);
 	bool x = true;
 	char input[2];
 
 	while (x) {
 		nono.show();
-
-		cout << endl << "(d)imensions (c)lean (f)ill randomly "
-			 << "(m)ake descriptions s(y)mbols | (b)ack" << endl;
+		cout << endl << "(d)imensions | (c)lean | (f)ill randomly "
+			 << "| (m)ake descriptions | s(y)mbols | (b)ack" << endl;
 		cin.get(input, 2);
 
 		switch (tryUncap(input[0])) {
 		case 'd':
-			nono.dimensions[0] = intRequest("x: ", nono);
-			nono.dimensions[1] = intRequest("y: ", nono);
+			clear(1, 0);
+			nono.dimensions[0] = nono.intRequest("x: ");
+			nono.dimensions[1] = nono.intRequest("y: ");
 			break;
 		case 'c':
 			for (int i = 0; i < sizeof(nono.display[0]) / 4; i++) {
@@ -226,20 +277,22 @@ void Properties(Nonogram& nono) {
 					nono.display[i][ii] = { 0 };
 				}
 			}
-			clear(0);
+			clear(1, 0);
 			break;
 		case 'f':
 			break;
 		case 'm':
+			nono.dscDsp();
+			clear(1, 0);
 			break;
 		case 'y':
 			break;
 		case 'b':
-			clear(0);
+			clear(1, 0);
 			x = !x;
 			break;
 		default:
-			clear(1);
+			clear(1, 1);
 		}
 	}
 }
@@ -251,18 +304,19 @@ void MainMenu() {
 	while(true) {
 		nono.show();
 
-		cout << endl << "left (a) up (w) right (d) down (s) |"
-			 << " toggle (q) | (p)roperties (e)xit" << endl;
+		cout << '\r' << "         (w) up" << endl
+			 << "(a) left (s) down (d) right | (q) toggle | "
+			 << "(p)roperties (e)xit" << endl;
 		cin.get(input, 2);
 
 		switch (tryUncap(input[0])) {
 		case 'a': case 'w': case 'd': case 's':
 			nono.moveCursor(input[0]);
-			clear(0);
+			clear(1, 0);
 			break;
 		case 'q':
 			nono.toggle(nono.cursor[0], nono.cursor[1]);
-			clear(0);
+			clear(1, 0);
 			break;
 		case 'p':
 			Properties(nono);
@@ -270,15 +324,12 @@ void MainMenu() {
 		case 'e':
 			return;
 		default:
-			clear(1);
+			clear(1, 1);
 		}
 	}
 }
 
 int main() {
-	//MainMenu();
-	string s;
-	cin >> s;
-	cout << s.size();
+	MainMenu();
 	return 0;
 }
